@@ -189,7 +189,7 @@ namespace ElevenCzech
             }
         }
 
-        static async Task ModifyNotesWithAudio(string dbPath, bool generateAudio = false, string? apiKey = null, bool generateTextFile = false)
+        static async Task ModifyNotesWithAudio(string dbPath, bool generateAudio = false, string? apiKey = null, bool generateTextFile = false, bool extractExistingAudio = false)
         {
             Console.WriteLine("\nAnalyzing notes for audio modification...");
             
@@ -223,18 +223,36 @@ namespace ElevenCzech
                 {
                     var czechSentence = fieldValues[4].Trim();
                     
-                    // Only add audio if field has content and NO existing audio references
-                    if (!string.IsNullOrEmpty(czechSentence) && !czechSentence.Contains("[sound:"))
+                    if (!string.IsNullOrEmpty(czechSentence))
                     {
-                        audioFileName = $"_czech_frequency_{audioFileCounter}.mp3";
-                        
-                        // Add audio reference to the Czech sentence field
-                        fieldValues[4] = $"{czechSentence} [sound:{audioFileName}]";
-                        fieldsModified = true;
-                        
-                        // Store the audio file and text pair
-                        audioTextPairs.Add((audioFileName, czechSentence));
-                        audioFileCounter++;
+                        // Check if field already has audio
+                        if (czechSentence.Contains("[sound:"))
+                        {
+                            // Extract existing audio reference and text for text file generation
+                            if (extractExistingAudio || generateTextFile)
+                            {
+                                var soundMatch = System.Text.RegularExpressions.Regex.Match(czechSentence, @"\[sound:([^\]]+)\]");
+                                if (soundMatch.Success)
+                                {
+                                    var existingAudioFile = soundMatch.Groups[1].Value;
+                                    var textWithoutAudio = czechSentence.Replace(soundMatch.Value, "").Trim();
+                                    audioTextPairs.Add((existingAudioFile, textWithoutAudio));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Add new audio reference
+                            audioFileName = $"_czech_frequency_{audioFileCounter}.mp3";
+                            
+                            // Add audio reference to the Czech sentence field
+                            fieldValues[4] = $"{czechSentence} [sound:{audioFileName}]";
+                            fieldsModified = true;
+                            
+                            // Store the audio file and text pair
+                            audioTextPairs.Add((audioFileName, czechSentence));
+                            audioFileCounter++;
+                        }
                     }
                 }
                 
@@ -254,6 +272,7 @@ namespace ElevenCzech
             reader.Close();
             
             Console.WriteLine($"\nFound {notesToUpdate.Count} notes to update with audio references");
+            Console.WriteLine($"Found {audioTextPairs.Count} total audio entries (including existing)");
             
             if (notesToUpdate.Count > 0)
             {
@@ -311,29 +330,29 @@ namespace ElevenCzech
                     
                     transaction.Commit();
                     Console.WriteLine($"Successfully updated {notesToUpdate.Count} notes!");
-                    
-                    // Generate text file with sentences and filenames
-                    if (generateTextFile)
-                    {
-                        var textFilePath = "czech_audio_list.txt";
-                        await File.WriteAllLinesAsync(textFilePath, 
-                            audioTextPairs.Select(pair => $"{pair.audioFile}|{pair.czechText}"));
-                        Console.WriteLine($"Generated text file: {textFilePath} with {audioTextPairs.Count} entries");
-                        Console.WriteLine("Use option 4 to generate audio from this file.");
-                    }
-                    
-                    // Generate audio immediately if requested
-                    if (generateAudio && !string.IsNullOrEmpty(apiKey))
-                    {
-                        Console.WriteLine("\nGenerating audio files...");
-                        await GenerateAudioFromList(audioTextPairs, apiKey);
-                    }
-                    
-                    if (!generateTextFile && !generateAudio)
-                    {
-                        Console.WriteLine($"Audio files will be named: _czech_frequency_1.mp3 to _czech_frequency_{notesToUpdate.Count}.mp3");
-                    }
                 }
+            }
+            
+            // Generate text file with sentences and filenames (regardless of whether notes were updated)
+            if (generateTextFile && audioTextPairs.Count > 0)
+            {
+                var textFilePath = "czech_audio_list.txt";
+                await File.WriteAllLinesAsync(textFilePath, 
+                    audioTextPairs.Select(pair => $"{pair.audioFile}|{pair.czechText}"));
+                Console.WriteLine($"Generated text file: {textFilePath} with {audioTextPairs.Count} entries");
+                Console.WriteLine("Use option 4 to generate audio from this file.");
+            }
+            
+            // Generate audio immediately if requested
+            if (generateAudio && !string.IsNullOrEmpty(apiKey) && audioTextPairs.Count > 0)
+            {
+                Console.WriteLine("\nGenerating audio files...");
+                await GenerateAudioFromList(audioTextPairs, apiKey);
+            }
+            
+            if (notesToUpdate.Count > 0 && !generateTextFile && !generateAudio)
+            {
+                Console.WriteLine($"Audio files will be named: _czech_frequency_1.mp3 to _czech_frequency_{notesToUpdate.Count}.mp3");
             }
         }
 
@@ -419,7 +438,8 @@ namespace ElevenCzech
             Console.WriteLine("3. Generate text file with sentences and modify notes");
             Console.WriteLine("4. Generate audio from text file");
             Console.WriteLine("5. Generate audio and modify notes (all in one)");
-            Console.Write("\nSelect option (1-5): ");
+            Console.WriteLine("6. Extract existing audio to text file (regenerate text file)");
+            Console.Write("\nSelect option (1-6): ");
             
             var choice = Console.ReadLine();
             
@@ -434,7 +454,7 @@ namespace ElevenCzech
                     break;
                     
                 case "3":
-                    await ModifyNotesWithAudio(dbPath, generateAudio: false, generateTextFile: true);
+                    await ModifyNotesWithAudio(dbPath, generateAudio: false, generateTextFile: true, extractExistingAudio: true);
                     break;
                     
                 case "4":
@@ -469,6 +489,10 @@ namespace ElevenCzech
                         }
                     }
                     await ModifyNotesWithAudio(dbPath, generateAudio: true, apiKey);
+                    break;
+                    
+                case "6":
+                    await ModifyNotesWithAudio(dbPath, generateAudio: false, generateTextFile: true, extractExistingAudio: true);
                     break;
                     
                 default:
