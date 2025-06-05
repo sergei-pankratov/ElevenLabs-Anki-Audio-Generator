@@ -135,6 +135,25 @@ Files are named with customizable prefix: `_czech_frequency_1.mp3`, `_czech_freq
 audioFileName = $"_your_custom_prefix_{audioFileCounter}.mp3";
 ```
 
+## Important Technical Details
+
+### Direct API Implementation
+This application uses **direct HTTP calls** to the ElevenLabs API rather than the .NET SDK. This ensures proper language specification support, including:
+- `language_code` parameter for accurate pronunciation
+- `model_id` selection for optimal multilingual support
+- Access to latest API features not yet available in SDK
+
+### Duplicate Prevention
+The program includes built-in safety checks to prevent adding multiple audio references to the same sentence:
+- Checks for existing `[sound:` tags before adding new ones
+- Safe to run multiple times without creating duplicates
+- Skips sentences that already have audio references
+
+### Voice Selection and Fallback
+- **Primary**: Searches for "GEORGE" voice (found to be optimal for Czech pronunciation)
+- **Fallback**: Uses first available voice if GEORGE is not found in your account
+- **Customizable**: Can be modified for your preferred voice in any language
+
 ## Customization
 
 This program was originally designed for Czech frequency dictionaries but can be adapted for any language and deck type.
@@ -148,6 +167,7 @@ Update the field index that contains your text (currently `[4]` for Czech freque
 if (fieldValues.Count > 4)  // Change 4 to your field index
 {
     var textContent = fieldValues[4].Trim();  // Change 4 to your field index
+}
 ```
 
 #### 2. Language and Voice Settings
@@ -200,35 +220,12 @@ var textFilePath = "czech_audio_list.txt";  // Change to your preferred name
 8. **Pack back** folder → .zip → .apkg
 9. **Import** to Anki and run **Tools → Check Media**
 
-## Features
-
-- ✅ Supports Czech language with proper language codes
-- ✅ Uses GEORGE voice (or fallback to first available voice)
-- ✅ Rate limiting to avoid API limits (1-second delays)
-- ✅ Progress tracking for audio generation
-- ✅ Direct output to Anki media folder
-- ✅ Separates text file generation from audio generation
-- ✅ Error handling and detailed logging
-
 ## Troubleshooting
 
-### "Database not found"
-- Check the path in `Program.cs` matches your extracted folder
-- Ensure you extracted the .apkg file correctly
-
-### "Missing files" or "Unused files" in Anki
-- Run **Tools → Check Media** in Anki after importing
-- This refreshes Anki's media database
-
-### Audio not playing
-- Ensure audio files are in the correct media folder
-- Check that audio references match actual filenames
-- Verify the audio files were generated successfully
-
-### API Rate Limits
-- The program includes 1-second delays between API calls
-- For large decks, generation may take a while
-- You can resume using Option 4 if interrupted
+### Wrong Language Pronunciation
+- Verify the `language_code` is set correctly in the code
+- Ensure you're using a compatible ElevenLabs model (`eleven_turbo_v2_5` recommended)
+- Check if your chosen voice supports your target language
 
 ## Project Structure
 
