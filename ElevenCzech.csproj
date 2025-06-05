@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove=".env" />
+    <None Remove="_A_Frequency_Dictionary_of_Czech %284%29.zip" />
+    <None Remove="_A_Frequency_Dictionary_of_Czech %284%29\collection.anki2" />
+    <None Remove="_A_Frequency_Dictionary_of_Czech %284%29\collection.anki21" />
+    <None Remove="_A_Frequency_Dictionary_of_Czech %284%29\collection.anki21b" />
+    <None Remove="_A_Frequency_Dictionary_of_Czech %284%29\media" />
+    <None Remove="_A_Frequency_Dictionary_of_Czech %284%29\meta" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include=".env">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_A_Frequency_Dictionary_of_Czech (4)\collection.anki2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_A_Frequency_Dictionary_of_Czech (4)\collection.anki21">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_A_Frequency_Dictionary_of_Czech (4)\media">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_A_Frequency_Dictionary_of_Czech (4)\meta">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dotenv.net" Version="3.2.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
