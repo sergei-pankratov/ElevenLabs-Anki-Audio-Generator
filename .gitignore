@@ -1,0 +1,68 @@
+# .NET C# .gitignore
+
+# Build Folders
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio working files
+.vs/
+
+# Auto-generated files
+*.generated.cs
+
+# Backup & temporary files
+*.bak
+*.swp
+
+# Logs
+*.log
+
+# Package directories
+packages/
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# DotNet specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# StyleCop
+StyleCopReport.xml
+
+# NCrunch
+*.ncrunch*
+
+# DotCover
+*.dotCover
+
+# CodeRush
+.cr/
+
+# Node.js
+node_modules/
+
+# JetBrains Rider
+.idea/
+
+# Mac
+*.DS_Store
+
+# Windows
+[Tt]humbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Python
+*.pyc
+
+# dotenv
+.env 
